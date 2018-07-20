@@ -13,6 +13,10 @@ class Selection(Analyzer):
         self.counters['cut_flow'].register('2 b jets')
     
     def process(self, event):
+
+
+	#Selection commit test
+
         self.counters['cut_flow'].inc('All events')
         if len(event.sel_iso_leptons) > 0:
             return True # could return False to stop processing
