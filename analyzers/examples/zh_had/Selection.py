@@ -15,7 +15,6 @@ class Selection(Analyzer):
     def process(self, event):
 
 
-	#Selection commit test
 
         self.counters['cut_flow'].inc('All events')
         if len(event.sel_iso_leptons) > 0:
@@ -30,3 +29,7 @@ class Selection(Analyzer):
         bjets = [jet for jet in jets if jet.tags['b']]
         if len(bjets) >= 2:
             self.counters['cut_flow'].inc('2 b jets')
+        
+        gammas = getattr(event, self.cfg_ana.photons)
+        print 'number of photons '
+        print len(gammas) 

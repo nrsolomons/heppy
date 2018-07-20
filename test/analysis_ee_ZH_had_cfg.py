@@ -142,6 +142,21 @@ genjets = cfg.Analyzer(
     fastjet_args = dict( njets = 4)  
 )
 
+# select photons to find energy                                    
+def is_photon(ptc):
+    '''returns True if the particle is a photon,                     
+    no restriction on status of photon       
+    '''
+    return abs(ptc.pdgid()) == 22
+
+photons = cfg.Analyzer(
+    Selector,
+    'photons',
+    output = 'photons',
+    input_objects = 'gen_particles',
+    filter_func =is_photon
+)
+
 # select b quarks for jet to parton matching
 def is_bquark(ptc):
     '''returns True if the particle is an outgoing b quark,
@@ -269,7 +284,8 @@ sequence = cfg.Sequence(
     sel_iso_leptons,
 #    lepton_veto, 
     jets,
-    compute_jet_energy, 
+    compute_jet_energy,
+    photons,
     bquarks,
     genjets, 
     genjet_to_b_match,
