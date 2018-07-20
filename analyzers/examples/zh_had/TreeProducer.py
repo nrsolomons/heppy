@@ -22,10 +22,15 @@ class TreeProducer(Analyzer):
         bookParticle(self.tree, 'zed')
         bookLepton(self.tree, 'lepton1')
         bookLepton(self.tree, 'lepton2')
+	
+	var(self.tree, 'h_mass')
         
        
     def process(self, event):
         self.tree.reset()
+
+	fill(self.tree,'h_mass',100)
+
         misenergy = getattr(event, self.cfg_ana.misenergy)
         fillParticle(self.tree, 'misenergy', misenergy )        
         jets = getattr(event, self.cfg_ana.jets)
