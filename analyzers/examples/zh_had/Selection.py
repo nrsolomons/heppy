@@ -1,6 +1,8 @@
 from heppy.framework.analyzer import Analyzer
 from heppy.statistics.counter import Counter
 
+import heapq
+
 class Selection(Analyzer):
 
     def beginLoop(self, setup):
@@ -30,6 +32,11 @@ class Selection(Analyzer):
         if len(bjets) >= 2:
             self.counters['cut_flow'].inc('2 b jets')
         
+        #getting photon properties
+
         gammas = getattr(event, self.cfg_ana.photons)
         print 'number of photons '
         print len(gammas) 
+        photon_energies = (gamma.e() for gamma in gammas)
+        print heapq.nlargest(2, photon_energies)
+
