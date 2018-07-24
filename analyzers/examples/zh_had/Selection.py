@@ -35,12 +35,13 @@ class Selection(Analyzer):
         gammas = getattr(event, self.cfg_ana.photons)
 	if len(gammas)<2:
 	    return False
-        self.counters['cut_flow'].inc('>= 2 photons')   
-        
+        self.counters['cut_flow'].inc('>= 2 photons')
+        for gamma in gammas:
+            if gamma.e() < 40:
+                gammas.remove(gamma)
+            elif abs(gamma.eta()) >= 2.5:
+                gammas.remove(gamma)
 
         mass = math.sqrt(2*(gammas[0].e()*gammas[1].e()) - 2*numpy.dot(gammas[0].p3(),gammas[1].p3()))
 
-        
-        print mass
-        print (gammas[0]._tlv+gammas[1]._tlv).M()
         setattr(event, self.cfg_ana.hmass, mass)

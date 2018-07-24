@@ -143,19 +143,19 @@ genjets = cfg.Analyzer(
 )
 
 # select photons to find energy                                    
-#def is_photon(ptc):
-#    '''returns True if the particle is a photon,                     
-#    no restriction on status of photon       
-#    '''
-#    return abs(ptc.pdgid()) == 22
+def is_photon(ptc):
+    '''returns True if the particle is a photon,                     
+    no restriction on status of photon       
+    '''
+    return abs(ptc.pdgid()) == 22
 
-#photons = cfg.Analyzer(
-#    Selector,
-#    'photons',
-#    output = 'photons',
-#    input_objects = 'gen_particles',
-#    filter_func =is_photon
-#)
+photons = cfg.Analyzer(
+    Selector,
+    'photons',
+    output = 'photons',
+    input_objects = 'gen_particles',
+    filter_func =is_photon
+)
 
 # select b quarks for jet to parton matching
 def is_bquark(ptc):
@@ -279,19 +279,19 @@ tree = cfg.Analyzer(
 sequence = cfg.Sequence(
     source,
     papas_sequence, 
-    leptons,
-    iso_leptons,
-    sel_iso_leptons,
+#    leptons,
+#    iso_leptons,
+#    sel_iso_leptons,
 #    lepton_veto, 
-    jets,
-    compute_jet_energy,
-#    photons,
-    bquarks,
-    genjets, 
-    genjet_to_b_match,
-    jet_to_genjet_match, 
-    btag,
-    missing_energy, 
+#    jets,
+#    compute_jet_energy,
+    photons,
+#    bquarks,
+#    genjets, 
+#    genjet_to_b_match,
+#    jet_to_genjet_match, 
+#    btag,
+#    missing_energy, 
     selection, 
     zhreco, 
     tree,
