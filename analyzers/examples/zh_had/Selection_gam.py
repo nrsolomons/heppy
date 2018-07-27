@@ -32,6 +32,7 @@ class Selection(Analyzer):
         
         #find 2 highest energy photons
 
+
         gammas = getattr(event, self.cfg_ana.photons)
 	if len(gammas)<2:
 	    return False
@@ -39,33 +40,36 @@ class Selection(Analyzer):
         for gamma in gammas:
             if gamma.e() < 40:
                 gammas.remove(gamma)
+                return False
+            self.counters['cut_flow'].inc('photon energy > 40')
             elif abs(gamma.eta()) >= 2.5:
                 gammas.remove(gamma)
-        mass_square = (2*(gammas[0].e()*gammas[1].e()) - 2*numpy.dot(gammas[0].p3(),gammas[1].p3()))
-        
+                return False
+            self.counters['cut_flow'].inc('pseudorapidity < 2.5')
+        mass = math.sqrt(2*(gammas[0].e()*gammas[1].e()) - 2*numpy.dot(gammas[0].p3(),gammas[1].p3()))
+        if len(gammas)==2:
+            print mass
         if len(gammas)>2:
             min_mass_diff = 9999.9
             photon_id_1 = -1
             photon_id_2 = -1
             for i in range(len(gammas)):
+                print i
                 for j in range(len(gammas)):
-                    if i<j:
-                        recoil_mass_square = ((240 - gammas[i].e() - gammas[j].e())**2 - numpy.dot((gammas[i].p3()+gammas[j].p3()),(gammas[i].p3()+gammas[j].p3())))
-                        if recoil_mass_square < 0:
-                            print 'Negative recoil mass squared'
-                            break
-                        else:
-                            recoil_mass = math.sqrt(recoil_mass_square)
+                    while(j>i):
+                        recoil_mass = math.sqrt((240 - gammas[i].e() - gammas[j].e())**2 - numpy.dot((gammas[i].p3()+gammas[j].p3()),(gammas[i].p3()+gammas[j].p3())))
                         mass_diff = abs(recoil_mass - 91.2)
                         if mass_diff < min_mass_diff:
                             min_mass_diff = mass_diff
                             photon_id_1 = i
                             photon_id_2 = j
-                            mass_square = (2*(gammas[i].e()*gammas[j].e()) - 2*numpy.dot(gammas[i].p3(),gammas[j].p3()))
-        if mass_square < 0:
-            print 'Negative mass squared'
-        else:
-            mass = math.sqrt(mass_square) 
-        print mass
+                            mass = math.sqrt(2*(gammas[i].e()*gammas[j].e()) - 2*numpy.dot(gammas[i].p3(),gammas[j].p3()))
+                        j+=1
+                    if i==j:
+                        break
+            higgscandidates = (gammas[photon_id_1], gammas[photon_id_2])
+            print mass
+            print photon_id_1
+            print photon_id_2
 
         setattr(event, self.cfg_ana.hmass, mass)
