@@ -10,8 +10,8 @@ class Selection(Analyzer):
         self.counters.addCounter('cut_flow') 
         self.counters['cut_flow'].register('All events')
         self.counters['cut_flow'].register('>= 2 photons')
-        self.counters['cut_flow'].register('photon energy > 40')
-        self.counters['cut_flow'].register('pseudorapidity < 2.5')
+        #self.counters['cut_flow'].register('photon energy > 40')
+        #self.counters['cut_flow'].register('pseudorapidity < 2.5')
         #self.counters['cut_flow'].register('2 b jets')
     
     def process(self, event):
@@ -41,7 +41,10 @@ class Selection(Analyzer):
                 gammas.remove(gamma)
             elif abs(gamma.eta()) >= 2.5:
                 gammas.remove(gamma)
-        mass_square = (2*(gammas[0].e()*gammas[1].e()) - 2*numpy.dot(gammas[0].p3(),gammas[1].p3()))
+        if len(gammas)<2:
+            return False
+        else:
+            mass_square = (2*(gammas[0].e()*gammas[1].e()) - 2*numpy.dot(gammas[0].p3(),gammas[1].p3()))
         
         if len(gammas)>2:
             min_mass_diff = 9999.9
@@ -63,9 +66,10 @@ class Selection(Analyzer):
                             photon_id_2 = j
                             mass_square = (2*(gammas[i].e()*gammas[j].e()) - 2*numpy.dot(gammas[i].p3(),gammas[j].p3()))
         if mass_square < 0:
+            mass = 0
             print 'Negative mass squared'
         else:
             mass = math.sqrt(mass_square) 
-        print mass
+            print mass
 
         setattr(event, self.cfg_ana.hmass, mass)

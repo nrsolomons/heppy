@@ -153,7 +153,7 @@ photons = cfg.Analyzer(
     Selector,
     'photons',
     output = 'photons',
-    input_objects = 'gen_particles',
+    input_objects = 'rec_particles',
     filter_func =is_photon
 )
 

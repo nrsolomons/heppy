@@ -31,6 +31,7 @@ class TreeProducer(Analyzer):
 
         hmass=getattr(event, self.cfg_ana.hmass)
 	fill(self.tree,'h_mass',hmass)
+        
 
         #misenergy = getattr(event, self.cfg_ana.misenergy)
         #fillParticle(self.tree, 'misenergy', misenergy )        
@@ -55,8 +56,7 @@ class TreeProducer(Analyzer):
         #               lepton)
         self.tree.tree.Fill()
         
+        
     def write(self, setup):
         self.rootfile.Write()
         self.rootfile.Close()
-        
-
