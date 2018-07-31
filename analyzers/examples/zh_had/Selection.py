@@ -10,9 +10,11 @@ class Selection(Analyzer):
         self.counters.addCounter('cut_flow') 
         self.counters['cut_flow'].register('All events')
         self.counters['cut_flow'].register('>= 2 photons')
-        #self.counters['cut_flow'].register('photon energy > 40')
-        #self.counters['cut_flow'].register('pseudorapidity < 2.5')
-        #self.counters['cut_flow'].register('2 b jets')
+        self.counters['cut_flow'].register('e>=40GeV, eta < 2.5')
+        #self.counters['cut_flow'].register('eta < 2.5')
+        self.counters['cut_flow'].register('sum of photon isolations < 0.4')
+        self.counters['cut_flow'].register('pseudorapidity gap < 1.8')
+        self.counters['cut_flow'].register('Higgs candidate theta > 25 degrees')
     
     def process(self, event):
 
@@ -36,15 +38,17 @@ class Selection(Analyzer):
 	if len(gammas)<2:
 	    return False
         self.counters['cut_flow'].inc('>= 2 photons')
-        for gamma in gammas:
-            if gamma.e() < 40:
-                gammas.remove(gamma)
-            elif abs(gamma.eta()) >= 2.5:
-                gammas.remove(gamma)
+        gammas[:] = [gamma for gamma in gammas if gamma.e()>=40 and abs(gamma.eta())<2.5]
         if len(gammas)<2:
             return False
-        else:
-            mass_square = (2*(gammas[0].e()*gammas[1].e()) - 2*numpy.dot(gammas[0].p3(),gammas[1].p3()))
+        self.counters['cut_flow'].inc('e>=40GeV, eta < 2.5')
+        #gammas[:] = [gamma for gamma in gammas if abs(gamma.eta())<2.5]
+        #if len(gammas)<2:
+        #    return False
+        #self.counters['cut_flow'].inc('eta < 2.5')
+        
+        if len(gammas)==2:
+            higgscandidates = (gammas[0], gammas[1]) 
         
         if len(gammas)>2:
             min_mass_diff = 9999.9
@@ -64,12 +68,47 @@ class Selection(Analyzer):
                             min_mass_diff = mass_diff
                             photon_id_1 = i
                             photon_id_2 = j
-                            mass_square = (2*(gammas[i].e()*gammas[j].e()) - 2*numpy.dot(gammas[i].p3(),gammas[j].p3()))
+            higgscandidates = (gammas[photon_id_1],gammas[photon_id_2])
+        
+        isosum = 0
+        for candidate in higgscandidates:
+            isolation = candidate.iso.sume/candidate.e()
+            isosum += isolation
+        if isosum >= 0.4:
+            return False
+        self.counters['cut_flow'].inc('sum of photon isolations < 0.4')
+
+        etagap = abs(higgscandidates[0].eta() - higgscandidates[1].eta())
+        if etagap >= 1.8:
+            return False
+        self.counters['cut_flow'].inc('pseudorapidity gap < 1.8')
+
+        higgstheta = numpy.degrees(abs(numpy.arctan((higgscandidates[0].pt() + higgscandidates[1].pt())/(higgscandidates[0].p3()[2] + higgscandidates[1].p3()[2]))))
+        if higgstheta <= 25:
+            return False
+        self.counters['cut_flow'].inc('Higgs candidate theta > 25 degrees')
+
+        mass_square = (2*(higgscandidates[0].e()*higgscandidates[1].e()) - 2*numpy.dot(higgscandidates[0].p3(),higgscandidates[1].p3()))
+
         if mass_square < 0:
             mass = 0
             print 'Negative mass squared'
         else:
             mass = math.sqrt(mass_square) 
             print mass
+        
+#        if mass<100:
+#            print mass
+#            print higgscandidates[0].e()
+#            print higgscandidates[1].e()
+#            print higgscandidates[0].eta()
+#            print higgscandidates[1].eta()
+#            recoil_mass = math.sqrt((240 - higgscandidates[0].e() - higgscandidates[1].e())**2 - numpy.dot((higgscandidates[0].p3()+higgscandidates[1].p3()),(higgscandidates[0].p3()+higgscandidates[1].p3())))
+#            print recoil_mass
+#            isosum = higgscandidates[0].iso.sume/higgscandidates[0].e() + higgscandidates[0].iso.sume/higgscandidates[1].e()
+#            print isosum
+#            print etagap
+
+            
 
         setattr(event, self.cfg_ana.hmass, mass)

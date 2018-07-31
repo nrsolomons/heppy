@@ -35,10 +35,10 @@ Collider.SQRTS = 240.
 # input definition
 comp = cfg.Component(
     'ee_ZH_Z_Hbb',
-    files = [
-        'ee_ZH_Z_Hbb.root'
-    ]
+    files = glob.glob('/afs/cern.ch/user/n/nsolomon/FCC/WorkDir/*0.root'
+    )
 )
+comp.splitFactor = len(comp.files)
 selectedComponents = [comp]
 
 # read FCC EDM events from the input root file(s)
@@ -157,6 +157,25 @@ photons = cfg.Analyzer(
     filter_func =is_photon
 )
 
+iso_photons = cfg.Analyzer(
+    IsolationAnalyzer,
+    'iso_photons',
+    candidates = 'photons',
+    particles = 'rec_particles',
+    iso_area = EtaPhiCircle(0.4)
+)
+
+#def is_isolated(gam):                                                         
+#    '''returns true for <1 to select all isolated photons'''                  
+#    return gam.iso.sume/gam.e()<1                                             
+#sel_iso_photons = cfg.Analyzer(                                               
+#    Selector,                                                                 
+#    'sel_iso_photons',                                                        
+#    output = 'sel_iso_photons',                                              
+#    input_objects = 'photons',                                                
+#    filter_func = is_isolated                                                
+#)  
+
 # select b quarks for jet to parton matching
 def is_bquark(ptc):
     '''returns True if the particle is an outgoing b quark,
@@ -267,11 +286,12 @@ selection = cfg.Analyzer(
 from heppy.analyzers.examples.zh_had.TreeProducer import TreeProducer
 tree = cfg.Analyzer(
     TreeProducer,
-    misenergy = 'missing_energy', 
-    jets='rescaled_jets',
-    higgs='higgs',
-    zed='zed',
-    leptons='sel_iso_leptons'
+#    misenergy = 'missing_energy', 
+#    jets='rescaled_jets',
+#    higgs='higgs',
+#    zed='zed',
+#    leptons='sel_iso_leptons'
+    hmass='higgs_mass'
 )
 
 # definition of the sequence of analyzers,
@@ -286,6 +306,8 @@ sequence = cfg.Sequence(
 #    jets,
 #    compute_jet_energy,
     photons,
+    iso_photons,
+#    sel_iso_photons,
 #    bquarks,
 #    genjets, 
 #    genjet_to_b_match,
@@ -293,7 +315,7 @@ sequence = cfg.Sequence(
 #    btag,
 #    missing_energy, 
     selection, 
-    zhreco, 
+#    zhreco, 
     tree,
     display
 )
