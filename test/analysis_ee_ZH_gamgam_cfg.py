@@ -33,13 +33,20 @@ Collider.BEAMS = 'ee'
 Collider.SQRTS = 240.
 
 # input definition
-comp = cfg.Component(
-    'ee_ZH_Z_Hbb',
-    files = glob.glob('/afs/cern.ch/user/n/nsolomon/FCC/WorkDir/*0.root'
+import glob
+ZH = cfg.Component(
+    'ZH',
+    files = glob.glob('/afs/cern.ch/work/n/nsolomon/FCC/WorkDir/ee_ZH_Z_Hbb_*.root'
     )
 )
-comp.splitFactor = len(comp.files)
-selectedComponents = [comp]
+ZH.splitFactor = len(ZH.files)
+Bkg = cfg.Component(
+    'Bkg',
+    files = glob.glob('/afs/cern.ch/work/n/nsolomon/FCC/WorkDir/background_*.root'
+    )
+)
+Bkg.splitFactor = len(Bkg.files)
+selectedComponents = [ZH,Bkg]
 
 # read FCC EDM events from the input root file(s)
 # do help(Reader) for more information
@@ -277,7 +284,10 @@ zhreco = cfg.Analyzer(
 from heppy.analyzers.examples.zh_had.Selection import Selection
 selection = cfg.Analyzer(
     Selection,
-    input_jets='rescaled_jets', 
+#    input_jets='rescaled_jets',
+    photons='photons',
+    input_jets='rescaled_jets',
+    higgs = 'higgs',
     log_level=logging.INFO
 )
 
@@ -291,7 +301,8 @@ tree = cfg.Analyzer(
 #    higgs='higgs',
 #    zed='zed',
 #    leptons='sel_iso_leptons'
-    hmass='higgs_mass'
+    higgs='higgs',
+    photons='photons',
 )
 
 # definition of the sequence of analyzers,

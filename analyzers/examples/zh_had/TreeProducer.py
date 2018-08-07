@@ -12,25 +12,25 @@ class TreeProducer(Analyzer):
                                         'tree.root']),
                               'recreate')
         self.tree = Tree( 'events', '')
-        #self.taggers = 'b'
+        self.taggers = 'gamma' #is this right?
         #bookJet(self.tree, 'jet1', self.taggers)
         #bookJet(self.tree, 'jet2', self.taggers)
         #bookJet(self.tree, 'jet3', self.taggers)
         #bookJet(self.tree, 'jet4', self.taggers)
         #bookParticle(self.tree, 'misenergy')
-        #bookParticle(self.tree, 'higgs')
+        bookParticle(self.tree, 'higgs')
         #bookParticle(self.tree, 'zed')
-        #bookLepton(self.tree, 'lepton1')
-        #bookLepton(self.tree, 'lepton2')
+        bookParticle(self.tree, 'photon1')
+        bookParticle(self.tree, 'photon2')
 	
-	var(self.tree, 'h_mass')
+#	var(self.tree, 'h_mass')
         
        
     def process(self, event):
         self.tree.reset()
 
-        hmass=getattr(event, self.cfg_ana.hmass)
-	fill(self.tree,'h_mass',hmass)
+#        hmass=getattr(event, self.cfg_ana.hmass)
+#	fill(self.tree,'h_mass',hmass)
         
 
         #misenergy = getattr(event, self.cfg_ana.misenergy)
@@ -41,20 +41,21 @@ class TreeProducer(Analyzer):
         #        break
         #    fillJet(self.tree, 'jet{ijet}'.format(ijet=ijet+1),
         #            jet, self.taggers)
-        #higgs = getattr(event, self.cfg_ana.higgs)
-        #if higgs:
-        #    fillParticle(self.tree, 'higgs', higgs)
+        higgs = getattr(event, self.cfg_ana.higgs)
+        if higgs:
+            fillParticle(self.tree, 'higgs', higgs)
         #zed = getattr(event, self.cfg_ana.zed)
         #if zed:
         #    fillParticle(self.tree, 'zed', zed)
-        #leptons = getattr(event, self.cfg_ana.leptons)
-        #for ilep, lepton in enumerate(reversed(leptons)):
-        #    if ilep == 2:
-        #        break
-        #    fillLepton(self.tree,
-        #               'lepton{ilep}'.format(ilep=ilep+1), 
-        #               lepton)
+        photons = getattr(event, self.cfg_ana.photons)
+        for i, photon in enumerate(reversed(photons)):
+            if i == 2:
+                break
+            fillParticle(self.tree,
+                       'photon{i}'.format(i=i+1), 
+                       photon)
         self.tree.tree.Fill()
+        
         
         
     def write(self, setup):

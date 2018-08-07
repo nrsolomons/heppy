@@ -1,5 +1,6 @@
 from heppy.framework.analyzer import Analyzer
 from heppy.statistics.counter import Counter
+from heppy.particles.tlv.resonance import Resonance2 as Resonance
 
 import math
 import numpy
@@ -14,7 +15,7 @@ class Selection(Analyzer):
         #self.counters['cut_flow'].register('eta < 2.5')
         self.counters['cut_flow'].register('sum of photon isolations < 0.4')
         self.counters['cut_flow'].register('pseudorapidity gap < 1.8')
-        self.counters['cut_flow'].register('Higgs candidate theta > 25 degrees')
+        self.counters['cut_flow'].register('Higgs candidate beam angle > 25 degrees')
     
     def process(self, event):
 
@@ -32,13 +33,12 @@ class Selection(Analyzer):
         #if len(bjets) >= 2:
         #    self.counters['cut_flow'].inc('2 b jets')
         
-        #find 2 highest energy photons
 
         gammas = getattr(event, self.cfg_ana.photons)
 	if len(gammas)<2:
 	    return False
         self.counters['cut_flow'].inc('>= 2 photons')
-        gammas[:] = [gamma for gamma in gammas if gamma.e()>=40 and abs(gamma.eta())<2.5]
+        gammas = [gamma for gamma in gammas if (gamma.e()>=40 and abs(gamma.eta())<2.5)]
         if len(gammas)<2:
             return False
         self.counters['cut_flow'].inc('e>=40GeV, eta < 2.5')
@@ -83,10 +83,10 @@ class Selection(Analyzer):
             return False
         self.counters['cut_flow'].inc('pseudorapidity gap < 1.8')
 
-        higgstheta = numpy.degrees(abs(numpy.arctan((higgscandidates[0].pt() + higgscandidates[1].pt())/(higgscandidates[0].p3()[2] + higgscandidates[1].p3()[2]))))
-        if higgstheta <= 25:
+        higgs = Resonance(higgscandidates[0], higgscandidates[1], 25)
+        if numpy.degrees(abs(higgs.theta())) >= 65:
             return False
-        self.counters['cut_flow'].inc('Higgs candidate theta > 25 degrees')
+        self.counters['cut_flow'].inc('Higgs candidate beam angle > 25 degrees')
 
         mass_square = (2*(higgscandidates[0].e()*higgscandidates[1].e()) - 2*numpy.dot(higgscandidates[0].p3(),higgscandidates[1].p3()))
 
@@ -95,7 +95,11 @@ class Selection(Analyzer):
             print 'Negative mass squared'
         else:
             mass = math.sqrt(mass_square) 
-            print mass
+
+        setattr(event, self.cfg_ana.higgs, higgs)
+        setattr(event, self.cfg_ana.photons, higgscandidates)
+
+                                     
         
 #        if mass<100:
 #            print mass
@@ -110,5 +114,3 @@ class Selection(Analyzer):
 #            print etagap
 
             
-
-        setattr(event, self.cfg_ana.hmass, mass)
