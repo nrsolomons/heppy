@@ -113,12 +113,10 @@ class JetClusterizer(Analyzer):
 
             else:
                 # njets_required not provided, or njets_required set to True
-                err = 'Cannot make {} jets with {} particles -> Event discarded'.format(
+                err = 'Cannot make {} jets with {} particles -> discarded in selection'.format(
                     self.njets, len(particles)
                 )
-                self.mainLogger.error(err)
-                # killing the sequence, as the user requests exactly njets
-                return False
+                return True
         # enough particles to make the required number of jets
         self.clusterizer.clear()
         for ptc in particles:
