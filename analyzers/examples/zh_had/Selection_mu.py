@@ -86,15 +86,11 @@ class Selection(Analyzer):
             return False
         self.counters['cut_flow'].inc('80 < recoil mass < 110')
 
-	jets1 = getattr(event, self.cfg_ana.input_jets)
-        jets = []
-        for jet in jets1:
-            if jet.e()>0:
-                jets.append(jet)
-            else:
-                return False
-	if len(jets)<2:
-	    return False
+	jets = getattr(event, self.cfg_ana.input_jets)
+	nojet = getattr(event, self.cfg_ana.nojet)
+        print nojet
+        if nojet > 50:
+            return False
 	self.counters['cut_flow'].inc('Two visible jets')
 	
 	notphoton = []

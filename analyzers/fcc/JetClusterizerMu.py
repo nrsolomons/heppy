@@ -1,7 +1,6 @@
 '''Jet clusterizer based on fastjet.'''
 
 from heppy.framework.analyzer import Analyzer
-
 from heppy.particles.tlv.jet import Jet
 from heppy.particles.jet import JetConstituents
 
@@ -109,15 +108,22 @@ class JetClusterizer(Analyzer):
                 # not enough particles for the required number of jets,
                 # making no jet
                 setattr(event, self.cfg_ana.output, [])
-                return True                
-
+                setattr(event, self.cfg_ana.nojet, 0)
+                return True 
             else:
                 # njets_required not provided, or njets_required set to True
-                err = 'Cannot make {} jets with {} particles -> discarded in selection'.format(
-                    self.njets, len(particles)
-                )
-                return True
+                #err = 'Cannot make {} jets with {} particles -> discarded in selection'.format(
+                #    self.njets, len(particles)
+                #)
+                #self.mainLogger.error(err)
+                setattr(event, self.cfg_ana.output, [])
+                setattr(event, self.cfg_ana.nojet, 100)
+		return True 
         # enough particles to make the required number of jets
+
+	if len(particles) >= self.njets:	
+            setattr(event, self.cfg_ana.nojet, 0)
+
         self.clusterizer.clear()
         for ptc in particles:
             self.clusterizer.add_p4( ptc.p4() )
@@ -138,3 +144,4 @@ class JetClusterizer(Analyzer):
             if self.cfg_ana.verbose:
                 print '\t', jet
         setattr(event, self.cfg_ana.output, jets)
+        

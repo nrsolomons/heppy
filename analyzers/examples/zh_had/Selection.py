@@ -11,10 +11,10 @@ class Selection(Analyzer):
         self.counters.addCounter('cut_flow') 
         self.counters['cut_flow'].register('All events')
         self.counters['cut_flow'].register('>= 2 photons')
-#        self.counters['cut_flow'].register('e>=40GeV')
-#        self.counters['cut_flow'].register('eta < 2.5')
-#        self.counters['cut_flow'].register('sum of photon isolations < 0.4')
-#        self.counters['cut_flow'].register('pseudorapidity gap < 1.8')
+        self.counters['cut_flow'].register('e>=40GeV')
+        self.counters['cut_flow'].register('eta < 2.5')
+        self.counters['cut_flow'].register('sum of photon isolations < 0.4')
+        self.counters['cut_flow'].register('pseudorapidity gap < 1.8')
         self.counters['cut_flow'].register('Higgs candidate beam angle > 25 degrees')
     
     def process(self, event):
@@ -34,19 +34,19 @@ class Selection(Analyzer):
         #    self.counters['cut_flow'].inc('2 b jets')
         
 
-        gammas = getattr(event, self.cfg_ana.photons) #don't forget to change this to gammas2
-	if len(gammas)<2:
+        gammas2 = getattr(event, self.cfg_ana.photons) 
+	if len(gammas2)<2:
 	    return False
         self.counters['cut_flow'].inc('>= 2 photons')
-#        gammas1 = [gamma1 for gamma1 in gammas2 if (gamma1.e()>=40)]
-#        if len(gammas1)<2:
-#            return False
-#        self.counters['cut_flow'].inc('e>=40GeV')
-#        gammas = [gamma for gamma in gammas1 if abs(gamma.eta())<2.5]
-#        if len(gammas)<2:
-#            return False
-#        self.counters['cut_flow'].inc('eta < 2.5')
-        
+        gammas1 = [gamma1 for gamma1 in gammas2 if (gamma1.e()>=40)]
+        if len(gammas1)<2:
+            return False
+        self.counters['cut_flow'].inc('e>=40GeV')
+        gammas = [gamma for gamma in gammas1 if abs(gamma.eta())<2.5]
+        if len(gammas)<2:
+            return False
+        self.counters['cut_flow'].inc('eta < 2.5')
+       
         if len(gammas)==2:
             higgscandidates = (gammas[0], gammas[1]) 
         
@@ -70,18 +70,18 @@ class Selection(Analyzer):
                             photon_id_2 = j
             higgscandidates = (gammas[photon_id_1],gammas[photon_id_2])
         
-#        isosum = 0
-#        for candidate in higgscandidates:
-#            isolation = candidate.iso.sume/candidate.e()
-#            isosum += isolation
-#        if isosum >= 0.4:
-#            return False
-#        self.counters['cut_flow'].inc('sum of photon isolations < 0.4')
+        isosum = 0
+        for candidate in higgscandidates:
+            isolation = candidate.iso.sume/candidate.e()
+            isosum += isolation
+        if isosum >= 0.4:
+            return False
+        self.counters['cut_flow'].inc('sum of photon isolations < 0.4')
 
-#        etagap = abs(higgscandidates[0].eta() - higgscandidates[1].eta())
-#        if etagap >= 1.8:
-#            return False
-#        self.counters['cut_flow'].inc('pseudorapidity gap < 1.8')
+        etagap = abs(higgscandidates[0].eta() - higgscandidates[1].eta())
+        if etagap >= 1.8:
+            return False
+        self.counters['cut_flow'].inc('pseudorapidity gap < 1.8')
 
         higgs = Resonance(higgscandidates[0], higgscandidates[1], 25)
         if numpy.degrees(abs(higgs.theta())) >= 65:
