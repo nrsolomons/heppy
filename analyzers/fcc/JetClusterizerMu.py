@@ -108,8 +108,8 @@ class JetClusterizer(Analyzer):
                 # not enough particles for the required number of jets,
                 # making no jet
                 setattr(event, self.cfg_ana.output, [])
-                setattr(event, self.cfg_ana.nojet, 0)
-                return True 
+                setattr(event, self.cfg_ana.nojet, 0) 
+                jets = []
             else:
                 # njets_required not provided, or njets_required set to True
                 #err = 'Cannot make {} jets with {} particles -> discarded in selection'.format(
@@ -118,30 +118,29 @@ class JetClusterizer(Analyzer):
                 #self.mainLogger.error(err)
                 setattr(event, self.cfg_ana.output, [])
                 setattr(event, self.cfg_ana.nojet, 100)
-		return True 
+                jets = []
         # enough particles to make the required number of jets
 
 	if len(particles) >= self.njets:	
             setattr(event, self.cfg_ana.nojet, 0)
 
-        self.clusterizer.clear()
-        for ptc in particles:
-            self.clusterizer.add_p4( ptc.p4() )
-        self.clusterize()
-        jets = []
-        if self.cfg_ana.verbose:
-            print self.clusterizer.n_jets(), 'jets:'
-        for jeti in range(self.clusterizer.n_jets()):
-            jet = Jet( self.clusterizer.jet(jeti) )
-            jet.constituents = JetConstituents()
-            jets.append( jet )
-            for consti in range(self.clusterizer.n_constituents(jeti)):
-                constituent_index = self.clusterizer.constituent_index(jeti, consti)
-                constituent = particles[constituent_index]
-                jet.constituents.append(constituent)
-            jet.constituents.sort()
-            self.validate(jet)
+            self.clusterizer.clear()
+            for ptc in particles:
+                self.clusterizer.add_p4( ptc.p4() )
+            self.clusterize()
+            jets = []
             if self.cfg_ana.verbose:
-                print '\t', jet
+                print self.clusterizer.n_jets(), 'jets:'
+            for jeti in range(self.clusterizer.n_jets()):
+                jet = Jet( self.clusterizer.jet(jeti) )
+                jet.constituents = JetConstituents()
+                jets.append( jet )
+                for consti in range(self.clusterizer.n_constituents(jeti)):
+                    constituent_index = self.clusterizer.constituent_index(jeti, consti)
+                    constituent = particles[constituent_index]
+                    jet.constituents.append(constituent)
+                jet.constituents.sort()
+                self.validate(jet)
+                if self.cfg_ana.verbose:
+                    print '\t', jet
         setattr(event, self.cfg_ana.output, jets)
-        

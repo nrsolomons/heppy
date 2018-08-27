@@ -29,6 +29,7 @@ class Selection(Analyzer):
 
         mus = getattr(event, self.cfg_ana.muons)
         photons = getattr(event, self.cfg_ana.photons)
+        particles = getattr(event, self.cfg_ana.particles)
 
         posmus = [mu for mu in mus if mu.pdgid() == -13]
         negmus = [mu for mu in mus if mu.pdgid() == 13]
@@ -87,15 +88,23 @@ class Selection(Analyzer):
         self.counters['cut_flow'].inc('80 < recoil mass < 110')
 
 	jets = getattr(event, self.cfg_ana.input_jets)
-	nojet = getattr(event, self.cfg_ana.nojet)
-        print nojet
-        if nojet > 50:
+	#nojet = getattr(event, self.cfg_ana.nojet)
+        #print nojet
+        #if nojet > 50:
+        #    return False        
+        for particle in particles:
+            if particle.pdgid() in [22,12,-12,14,-14,16,-16]:
+                particles.remove(particle)
+        if len(particles)<4:
             return False
 	self.counters['cut_flow'].inc('Two visible jets')
-	
+	for particle in particles:
+	    if particle.pdgid() in [11,-11]:
+		print 'oh no!'
 	notphoton = []
 	for jet in jets:
             emfrac = (jet.constituents[211].e() + jet.constituents[22].e())/jet.e()
+	    print emfrac
 	    if emfrac < 0.8:
 		notphoton.append(jet)
 	if len(notphoton)<1:
