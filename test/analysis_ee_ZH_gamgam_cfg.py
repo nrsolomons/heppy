@@ -36,7 +36,7 @@ Collider.SQRTS = 240.
 import glob
 ZH = cfg.Component(
     'ZH',
-    files = glob.glob('/afs/cern.ch/work/n/nsolomon/FCC/WorkDir/ee_ZH_Z_Hbb_*.root'
+    files = glob.glob('/afs/cern.ch/work/n/nsolomon/FCC/WorkDir/ee_ZH_Z_Hbb_0.root'
     )
 )
 ZH.splitFactor = len(ZH.files)
@@ -138,7 +138,7 @@ jets = cfg.Analyzer(
     JetClusterizer,
     output = 'jets',
     particles = 'rec_particles',
-    fastjet_args = dict( njets = 4)  
+    fastjet_args = dict( njets = 2)  
 )
 
 # make 4 gen jets with stable gen particles
@@ -146,15 +146,16 @@ genjets = cfg.Analyzer(
     JetClusterizer,
     output = 'genjets',
     particles = 'gen_particles_stable',
-    fastjet_args = dict( njets = 4)  
+    fastjet_args = dict( njets = 2)  
 )
 
-# select photons to find energy                                    
+# select photons to find energy                                          
 def is_photon(ptc):
-    '''returns True if the particle is a photon,                     
-    no restriction on status of photon       
+    '''returns True if the particle is a photon,
+    no restriction on status of photon
     '''
-    return abs(ptc.pdgid()) == 22
+
+    return abs(ptc.pdgid()) == 22 #and ptc.status() not in (51,59)
 
 photons = cfg.Analyzer(
     Selector,
@@ -166,22 +167,22 @@ photons = cfg.Analyzer(
 
 iso_photons = cfg.Analyzer(
     IsolationAnalyzer,
-    'iso_photons',
     candidates = 'photons',
-    particles = 'rec_particles',
+    particles ='rec_particles',
     iso_area = EtaPhiCircle(0.4)
 )
 
-#def is_isolated(gam):                                                         
-#    '''returns true for <1 to select all isolated photons'''                  
-#    return gam.iso.sume/gam.e()<1                                             
-#sel_iso_photons = cfg.Analyzer(                                               
-#    Selector,                                                                 
-#    'sel_iso_photons',                                                        
-#    output = 'sel_iso_photons',                                              
-#    input_objects = 'photons',                                                
-#    filter_func = is_isolated                                                
-#)  
+#def is_isolated(gam):
+#    '''returns true for <1 to select all isolated photons'''
+#    return gam.iso.sume/gam.e()<1                               
+
+#sel_iso_photons = cfg.Analyzer(
+#    Selector,
+#    'sel_iso_photons',
+#    output = 'sel_iso_photons',
+#    input_objects = 'photons',
+#    filter_func = is_isolated
+#)
 
 # select b quarks for jet to parton matching
 def is_bquark(ptc):
@@ -190,7 +191,8 @@ def is_bquark(ptc):
     http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
     '''
     return abs(ptc.pdgid()) == 5 and ptc.status() == 23
-    
+
+   
 bquarks = cfg.Analyzer(
     Selector,
     'bquarks',
@@ -214,6 +216,22 @@ jet_to_genjet_match = cfg.Analyzer(
     match_particles='genjets',
     particles='rescaled_jets',
     delta_r=0.5
+)
+
+genphotons = cfg.Analyzer(
+    Selector,
+    'genphotons',
+    output = 'genphotons',
+    input_objects = 'gen_particles',
+    filter_func =is_photon
+)
+
+
+photon_genphoton_match = cfg.Analyzer(
+    Matcher,
+    match_particles='genphotons',
+    particles='photons',
+    delta_r=0.2
 )
 
 # rescale the jet energy taking according to initial p4
@@ -284,10 +302,15 @@ zhreco = cfg.Analyzer(
 from heppy.analyzers.examples.zh_had.Selection import Selection
 selection = cfg.Analyzer(
     Selection,
-#    input_jets='rescaled_jets',
+#    hmass="higgs_mass",
     photons='photons',
     input_jets='rescaled_jets',
+    particles='rec_particles',
     higgs = 'higgs',
+    isolations = 'isolations',
+    status='status',
+    etagap='etagap',
+    isosum='isosum',
     log_level=logging.INFO
 )
 
@@ -296,13 +319,13 @@ selection = cfg.Analyzer(
 from heppy.analyzers.examples.zh_had.TreeProducer import TreeProducer
 tree = cfg.Analyzer(
     TreeProducer,
-#    misenergy = 'missing_energy', 
-#    jets='rescaled_jets',
-#    higgs='higgs',
-#    zed='zed',
-#    leptons='sel_iso_leptons'
+#    hmass='higgs_mass'
     higgs='higgs',
     photons='photons',
+    isolations='isolations',
+    status='status',
+    etagap='etagap',
+    isosum='isosum'
 )
 
 # definition of the sequence of analyzers,
@@ -315,12 +338,14 @@ sequence = cfg.Sequence(
 #    sel_iso_leptons,
 #    lepton_veto, 
 #    jets,
-#    compute_jet_energy,
+#    compute_jet_energy, 
     photons,
     iso_photons,
 #    sel_iso_photons,
 #    bquarks,
-#    genjets, 
+#    genjets,
+    genphotons,
+    photon_genphoton_match, 
 #    genjet_to_b_match,
 #    jet_to_genjet_match, 
 #    btag,
