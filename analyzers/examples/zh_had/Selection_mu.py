@@ -87,30 +87,6 @@ class Selection(Analyzer):
             return False
         self.counters['cut_flow'].inc('80 < recoil mass < 110')
 
-	jets = getattr(event, self.cfg_ana.input_jets)
-	#nojet = getattr(event, self.cfg_ana.nojet)
-        #print nojet
-        #if nojet > 50:
-        #    return False        
-        for particle in particles:
-            if particle.pdgid() in [22,12,-12,14,-14,16,-16]:
-                particles.remove(particle)
-        if len(particles)<4:
-            return False
-	self.counters['cut_flow'].inc('Two visible jets')
-	for particle in particles:
-	    if particle.pdgid() in [11,-11]:
-		print 'oh no!'
-	notphoton = []
-	for jet in jets:
-            emfrac = (jet.constituents[211].e() + jet.constituents[22].e())/jet.e()
-	    print emfrac
-	    if emfrac < 0.8:
-		notphoton.append(jet)
-	if len(notphoton)<1:
-	    return False 
-        self.counters['cut_flow'].inc('EM fraction < 0.8')
-
         if len(pos_mus) > 1:
             min_mass_diff = 9999.9
             id1 = -1
@@ -130,6 +106,37 @@ class Selection(Analyzer):
             higgscandidates = (pos_mus[id1], neg_mus[id2])
         else:
             higgscandidates = (pos_mus[0], neg_mus[0])
+
+	jets = getattr(event, self.cfg_ana.input_jets)
+	#nojet = getattr(event, self.cfg_ana.nojet)
+        #print nojet
+        #if nojet > 50:
+        #    return False
+	visible_particle = []        
+        for particle in particles:
+            if particle.pdgid() not in [ 12,-12,14,-14,16,-16]:
+                visible_particle.append(particle)
+        if len(visible_particle)<4:
+            return False
+	self.counters['cut_flow'].inc('Two visible jets')
+
+	for particle in particles:
+	    if particle.pdgid() in [11,-11]:
+		print 'oh no!'
+		print particle.e()
+	notphoton = []
+	for jet in jets:
+	    extrae = 0	
+	    for component in jet.constituents[13].particles():
+		if component in higgscandidates:
+		    extrae += component.e()
+            emfrac = (jet.constituents[211].e() +jet.constituents[11].e() +jet.constituents[22].e() +jet.constituents[13].e() - extrae )/jet.e()
+	    print emfrac
+	    if emfrac < 0.8:
+		notphoton.append(jet)
+	if len(notphoton)<1:
+	    return False 
+        self.counters['cut_flow'].inc('EM fraction < 0.8')
 
 	higgs = Resonance(higgscandidates[0], higgscandidates[1], 25)
 	setattr(event, self.cfg_ana.higgs, higgs)
