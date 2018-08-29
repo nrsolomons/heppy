@@ -101,14 +101,19 @@ class JetClusterizer(Analyzer):
          - event.<self.cfg_ana.output>: the list of L{jets<heppy.particles.jet.Jet>}. 
         '''
         particles = getattr(event, self.cfg_ana.particles)
+	higgscandidates = getattr(event, self.cfg_ana.higgscandidates)
         # removing neutrinos
-        particles = [ptc for ptc in particles if abs(ptc.pdgid()) not in [12,14,16]]
-        if len(particles) < self.njets:
+	newparticles = list(particles)
+	for ptc in newparticles:
+	    if ptc in higgscandidates:
+		newparticles.remove(ptc)
+        newparticles = [ptc for ptc in newparticles if abs(ptc.pdgid()) not in [12,14,16]]
+        if len(newparticles) < self.njets:
             if hasattr(self.cfg_ana, 'njets_required') and self.cfg_ana.njets_required == False:
                 # not enough particles for the required number of jets,
                 # making no jet
                 setattr(event, self.cfg_ana.output, [])
-                setattr(event, self.cfg_ana.nojet, 0) 
+                #setattr(event, self.cfg_ana.nojet, 0) 
                 jets = []
             else:
                 # njets_required not provided, or njets_required set to True
@@ -117,15 +122,15 @@ class JetClusterizer(Analyzer):
                 #)
                 #self.mainLogger.error(err)
                 setattr(event, self.cfg_ana.output, [])
-                setattr(event, self.cfg_ana.nojet, 100)
+                #setattr(event, self.cfg_ana.nojet, 100)
                 jets = []
         # enough particles to make the required number of jets
 
-	if len(particles) >= self.njets:	
-            setattr(event, self.cfg_ana.nojet, 0)
+	if len(newparticles) >= self.njets:	
+            #setattr(event, self.cfg_ana.nojet, 0)
 
             self.clusterizer.clear()
-            for ptc in particles:
+            for ptc in newparticles:
                 self.clusterizer.add_p4( ptc.p4() )
             self.clusterize()
             jets = []
@@ -137,7 +142,7 @@ class JetClusterizer(Analyzer):
                 jets.append( jet )
                 for consti in range(self.clusterizer.n_constituents(jeti)):
                     constituent_index = self.clusterizer.constituent_index(jeti, consti)
-                    constituent = particles[constituent_index]
+                    constituent = newparticles[constituent_index]
                     jet.constituents.append(constituent)
                 jet.constituents.sort()
                 self.validate(jet)
