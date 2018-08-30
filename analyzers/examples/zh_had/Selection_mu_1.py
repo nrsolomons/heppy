@@ -29,7 +29,10 @@ class Selection1(Analyzer):
         mus = getattr(event, self.cfg_ana.muons)
         photons = getattr(event, self.cfg_ana.photons)
         particles = getattr(event, self.cfg_ana.particles)
-
+	
+	lenmu = len(mus)
+	setattr(event, self.cfg_ana.lenmu, lenmu)
+	
         posmus = [mu for mu in mus if mu.pdgid() == -13]
         negmus = [mu for mu in mus if mu.pdgid() == 13]
         if len(posmus)<1 or len(negmus)<1:
@@ -113,5 +116,9 @@ class Selection1(Analyzer):
         if len(visible_particle)<4:
             return False
 	self.counters['cut_flow'].inc('Two visible jets')
-
+	newparticles = list(particles)
+	for ptc in newparticles:
+	    if ptc in higgscandidates:
+		newparticles.remove(ptc)
+	setattr(event, self.cfg_ana.newparticles, newparticles)
         setattr(event, self.cfg_ana.higgscandidates, higgscandidates)

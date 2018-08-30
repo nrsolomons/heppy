@@ -22,7 +22,16 @@ class TreeProducer(Analyzer):
         #bookParticle(self.tree, 'zed')
         bookParticle(self.tree, 'muon1')
         bookParticle(self.tree, 'muon2')
+        var(self.tree, 'lenmu')
+	var(self.tree, 'charged_hadron_e1')
+	var(self.tree, 'muon_e1')
+	var(self.tree, 'electron_e1')
+	var(self.tree, 'photon_e1')
 	
+	var(self.tree, 'charged_hadron_e2')
+	var(self.tree, 'muon_e2')
+	var(self.tree, 'electron_e2')
+	var(self.tree, 'photon_e2')
 #	var(self.tree, 'h_mass')
         
        
@@ -31,8 +40,37 @@ class TreeProducer(Analyzer):
 
 #        hmass=getattr(event, self.cfg_ana.hmass)
 #	fill(self.tree,'h_mass',hmass)
-        
+        lenmu=getattr(event, self.cfg_ana.lenmu)
+        fill(self.tree, 'lenmu',lenmu)
 
+        charged_hadron_e=getattr(event, self.cfg_ana.charged_hadron_e)
+        for i, charged_hadron_e in enumerate(reversed(charged_hadron_e)):
+            if i == 2:
+                break
+            fill(self.tree,
+                       'charged_hadron_e{i}'.format(i=i+1), 
+			charged_hadron_e) 
+        muon_e=getattr(event, self.cfg_ana.muon_e) 
+        for i, muon_e in enumerate(reversed(muon_e)):
+            if i == 2:
+                break
+            fill(self.tree,
+                       'muon_e{i}'.format(i=i+1), 
+			muon_e) 
+        electron_e=getattr(event, self.cfg_ana.electron_e) 
+        for i, electron_e in enumerate(reversed(electron_e)):
+            if i == 2:
+                break
+            fill(self.tree,
+                       'electron_e{i}'.format(i=i+1), 
+			electron_e) 
+        photon_e=getattr(event, self.cfg_ana.photon_e) 
+        for i, photon_e in enumerate(reversed(photon_e)):
+            if i == 2:
+                break
+            fill(self.tree,
+                       'photon_e{i}'.format(i=i+1), 
+			photon_e) 
         #misenergy = getattr(event, self.cfg_ana.misenergy)
         #fillParticle(self.tree, 'misenergy', misenergy )        
         #jets = getattr(event, self.cfg_ana.jets)

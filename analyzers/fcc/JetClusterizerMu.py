@@ -106,15 +106,16 @@ class JetClusterizer(Analyzer):
 	newparticles = list(particles)
 	for ptc in newparticles:
 	    if ptc in higgscandidates:
-		newparticles.remove(ptc)
+		newparticles.remove(ptc)	
         newparticles = [ptc for ptc in newparticles if abs(ptc.pdgid()) not in [12,14,16]]
         if len(newparticles) < self.njets:
             if hasattr(self.cfg_ana, 'njets_required') and self.cfg_ana.njets_required == False:
                 # not enough particles for the required number of jets,
                 # making no jet
                 setattr(event, self.cfg_ana.output, [])
-                #setattr(event, self.cfg_ana.nojet, 0) 
-                jets = []
+                return False
+		print 'err 1'
+                
             else:
                 # njets_required not provided, or njets_required set to True
                 #err = 'Cannot make {} jets with {} particles -> discarded in selection'.format(
@@ -122,8 +123,8 @@ class JetClusterizer(Analyzer):
                 #)
                 #self.mainLogger.error(err)
                 setattr(event, self.cfg_ana.output, [])
-                #setattr(event, self.cfg_ana.nojet, 100)
-                jets = []
+                return False 
+                print 'err 2'
         # enough particles to make the required number of jets
 
 	if len(newparticles) >= self.njets:	

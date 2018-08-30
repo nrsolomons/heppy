@@ -30,13 +30,29 @@ class Selection2(Analyzer):
 #		print 'oh no!'
 #		print particle.e()
 	notphoton = []
+	charged_hadron_e = []
+	muon_e = []
+	electron_e = []
+	photon_e = []
 	for jet in jets:
-	    emfrac = (jet.constituents[211].e() +jet.constituents[11].e()+jet.constituents[22].e())/jet.e()
+	    emfrac = (jet.constituents[211].e() +jet.constituents[13].e()+jet.constituents[11].e()+jet.constituents[22].e())/jet.e()
 	    if emfrac < 0.8:
 		notphoton.append(jet)
-	if len(notphoton)<1:
-	    return False 
-        self.counters['cut_flow'].inc('EM fraction < 0.8')
+	    ch_hadron_e = jet.constituents[211].e()/jet.e()
+	    mu_e = jet.constituents[13].e()/jet.e()
+	    el_e = jet.constituents[11].e()/jet.e()
+	    ph_e =jet.constituents[22].e()/jet.e()
+	    charged_hadron_e.append(ch_hadron_e)
+	    muon_e.append(mu_e)
+	    electron_e.append(el_e)
+	    photon_e.append(ph_e)
+#	if len(notphoton)<1:
+#	    return False 
+#        self.counters['cut_flow'].inc('EM fraction < 0.8')
 
 	higgs = Resonance(higgscandidates[0], higgscandidates[1], 25)
 	setattr(event, self.cfg_ana.higgs, higgs)
+	setattr(event, self.cfg_ana.charged_hadron_e, charged_hadron_e)
+	setattr(event, self.cfg_ana.muon_e, muon_e)
+	setattr(event, self.cfg_ana.electron_e, electron_e)
+	setattr(event, self.cfg_ana.photon_e, photon_e)
