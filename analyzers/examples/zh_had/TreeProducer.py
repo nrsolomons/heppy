@@ -22,12 +22,16 @@ class TreeProducer(Analyzer):
         #bookParticle(self.tree, 'zed')
         bookParticle(self.tree, 'photon1')
         bookParticle(self.tree, 'photon2')
-	var(self.tree, 'status1')
-	var(self.tree, 'status2')
-	var(self.tree, 'isolation1')
-	var(self.tree, 'isolation2')
-	var(self.tree, 'etagap')
-	var(self.tree, 'isosum')
+        bookParticle(self.tree, 'matchedphoton1')
+        bookParticle(self.tree, 'matchedphoton2')
+        bookParticle(self.tree, 'mother1')
+        bookParticle(self.tree, 'mother2')
+        var(self.tree, 'status1')
+        var(self.tree, 'status2')
+        var(self.tree, 'isolation1')
+        var(self.tree, 'isolation2')
+        var(self.tree, 'etagap')
+        var(self.tree, 'isosum')
 	
 #	var(self.tree, 'h_mass')
         
@@ -61,6 +65,21 @@ class TreeProducer(Analyzer):
                        'photon{i}'.format(i=i+1), 
                        photon)
 
+        matchedphotons = getattr(event, self.cfg_ana.matchedphotons)
+        for i, matchedphoton in enumerate(reversed(matchedphotons)):
+            if i == 2:
+                break
+            fillParticle(self.tree,
+                       'matchedphoton{i}'.format(i=i+1), 
+                       matchedphoton)
+
+        mothers = getattr(event, self.cfg_ana.mothers)
+        for i, mother in enumerate(reversed(mothers)):
+            if i == 2:
+                break
+            fillParticle(self.tree,
+                       'mother{i}'.format(i=i+1), 
+                       mother)
         status = getattr(event, self.cfg_ana.status)
         for i, status in enumerate(reversed(status)):
             if i == 2:
@@ -78,11 +97,11 @@ class TreeProducer(Analyzer):
                        isolation)
 	
         etagap=getattr(event, self.cfg_ana.etagap)
-	fill(self.tree,'etagap',etagap)
+        fill(self.tree,'etagap',etagap)
        
         isosum=getattr(event, self.cfg_ana.isosum)
-	fill(self.tree,'isosum',isosum)
-	self.tree.tree.Fill()
+        fill(self.tree,'isosum',isosum)
+        self.tree.tree.Fill()
          
     def write(self, setup):
         self.rootfile.Write()

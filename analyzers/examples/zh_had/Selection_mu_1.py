@@ -30,30 +30,30 @@ class Selection1(Analyzer):
         photons = getattr(event, self.cfg_ana.photons)
         particles = getattr(event, self.cfg_ana.particles)
 	
-	lenmu = len(mus)
-	setattr(event, self.cfg_ana.lenmu, lenmu)
+        lenmu = len(mus)
+        setattr(event, self.cfg_ana.lenmu, lenmu)
 	
-        posmus = [mu for mu in mus if mu.pdgid() == -13]
-        negmus = [mu for mu in mus if mu.pdgid() == 13]
-        if len(posmus)<1 or len(negmus)<1:
+        posmus1 = [mu for mu in mus if mu.pdgid() == -13]
+        negmus1 = [mu for mu in mus if mu.pdgid() == 13]
+        if len(posmus1)<1 or len(negmus1)<1:
             return False
         self.counters['cut_flow'].inc('Mumu pair') 
 
-        isomus = [mu for mu in mus if mu.iso.sumpt/mu.pt()<0.2]
+        isomus = [mu for mu in mus if mu.iso.sume/mu.e()<0.2]
         posmus = [mu for mu in isomus if mu.pdgid() == -13]
         negmus = [mu for mu in isomus if mu.pdgid() == 13] 
         if len(posmus)<1 or len(negmus)<1:
             return False
         self.counters['cut_flow'].inc('Relative isolation < 0.2')
 	
-	bremphotons = []
-	for i in photons:
-	    for j in isomus:
-		if deltaR(i,j)<0.5:
-		    bremphotons.append(i)
+        bremphotons = []
+        for i in photons:
+            for j in isomus:
+                if deltaR(i,j)<1:
+                    bremphotons.append(i)
 
        # pos_mus and neg_mus may contain repeats of the muons or antimuons but, ordered, they contain a list of pairs that survive the cuts
-        photon_combos = sum([map(list, combinations(bremphotons, k)) for k in range(len(bremphotons) + 1)], []) 
+        photon_combos = sum([map(list, combinations(bremphotons, k)) for k in range(len(bremphotons) + 0)], []) 
         min_mass_diff = 9999.9
         recoilmass = 0
         pos_mus = [] 
@@ -89,6 +89,13 @@ class Selection1(Analyzer):
             return False
         self.counters['cut_flow'].inc('80 < recoil mass < 110')
 
+
+        visible_particle = [ptc for ptc in particles if ptc.pdgid() not in [12,-12,14,-14,16,-16]]        
+        if len(visible_particle)<4:
+            return False
+        self.counters['cut_flow'].inc('Two visible jets')
+
+
         if len(pos_mus) > 1:
             min_mass_diff = 9999.9
             id1 = -1
@@ -105,20 +112,18 @@ class Selection1(Analyzer):
                     if mass_diff < min_mass_diff:
                         id1 = i
                         id2 = j
+                        min_mass_diff = mass_diff
             higgscandidates = (pos_mus[id1], neg_mus[id2])
         else:
             higgscandidates = (pos_mus[0], neg_mus[0])
-
-	visible_particle = []        
-        for particle in particles:
-            if particle.pdgid() not in [ 12,-12,14,-14,16,-16]:
-                visible_particle.append(particle)
-        if len(visible_particle)<4:
-            return False
-	self.counters['cut_flow'].inc('Two visible jets')
-	newparticles = list(particles)
-	for ptc in newparticles:
-	    if ptc in higgscandidates:
-		newparticles.remove(ptc)
-	setattr(event, self.cfg_ana.newparticles, newparticles)
+        newparticles = [ptc for ptc in particles if ptc not in higgscandidates]
+        #ids1 = []
+        #ids2 = []
+        #for ptc in particles:
+        #    ids1.append(ptc.pdgid())
+        #for ptc in newparticles:
+        #    ids2.append(ptc.pdgid())
+        #print ids1
+        #print ids2
+        setattr(event, self.cfg_ana.newparticles, newparticles)
         setattr(event, self.cfg_ana.higgscandidates, higgscandidates)

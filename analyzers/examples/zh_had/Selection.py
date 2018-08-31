@@ -15,9 +15,9 @@ class Selection(Analyzer):
         self.counters['cut_flow'].register('>= 2 photons')
         self.counters['cut_flow'].register('e>=40GeV')
         self.counters['cut_flow'].register('eta < 2.5')
-#        self.counters['cut_flow'].register('sum of photon isolations < 0.4')
-#        self.counters['cut_flow'].register('pseudorapidity gap < 1.8')
-#        self.counters['cut_flow'].register('Higgs candidate beam angle > 25 degrees')
+        #self.counters['cut_flow'].register('sum of photon isolations < 0.4')
+        #self.counters['cut_flow'].register('pseudorapidity gap < 1.8')
+        #self.counters['cut_flow'].register('Higgs candidate beam angle > 25 degrees')
      
     def process(self, event):
 
@@ -36,8 +36,8 @@ class Selection(Analyzer):
         #    self.counters['cut_flow'].inc('2 b jets')
         
         gammas2 = getattr(event, self.cfg_ana.photons)
-	if len(gammas2)<2:
-	    return False
+        if len(gammas2)<2:
+            return False
         self.counters['cut_flow'].inc('>= 2 photons')
 
         gammas1 = [gamma1 for gamma1 in gammas2 if (gamma1.e()>=40)]
@@ -74,13 +74,13 @@ class Selection(Analyzer):
 
         isosum = 0
 	
-	particles = getattr(event, self.cfg_ana.particles)
-	isolations = []
+        particles = getattr(event, self.cfg_ana.particles)
+        isolations = []
         for candidate in higgscandidates:
             isolation = candidate.iso.sume/candidate.e()
 #	    print "relative isolation:", isolation, "absolute:", candidate.iso.sume
             isosum += isolation
-	    isolations.append(isolation)
+            isolations.append(isolation)
 #	    particles_in_cone = []
 	    
 #	    for particle in particles:
@@ -108,12 +108,16 @@ class Selection(Analyzer):
 #            return False
 #        self.counters['cut_flow'].inc('Higgs candidate beam angle > 25 degrees')
 	
-	status = []
+        status = []
+        matchedphotons = []
+        mothers = []
         for particle in higgscandidates:
-	    if particle.match is not None:
-	        status.append(particle.match.status())
-	    if particle.match is None:
-		print 'No match found'
+            if particle.match is not None:
+                status.append(particle.match.status())
+                matchedphotons.append(particle.match)
+                mothers.append(particle.match.mothers)
+            if particle.match is None:
+                print 'No match found'
 	
         mass_square = (2*(higgscandidates[0].e()*higgscandidates[1].e()) - 2*numpy.dot(higgscandidates[0].p3(),higgscandidates[1].p3()))
 
@@ -125,10 +129,12 @@ class Selection(Analyzer):
 
         setattr(event, self.cfg_ana.higgs, higgs)
         setattr(event, self.cfg_ana.photons, higgscandidates)
-	setattr(event, self.cfg_ana.isolations, isolations)
-	setattr(event, self.cfg_ana.status, status)
-	setattr(event, self.cfg_ana.etagap, etagap)
-	setattr(event, self.cfg_ana.isosum, isosum)
+        setattr(event, self.cfg_ana.isolations, isolations)
+        setattr(event, self.cfg_ana.status, status)
+        setattr(event, self.cfg_ana.matchedphotons, matchedphotons)
+        setattr(event, self.cfg_ana.mothers, mothers)
+        setattr(event, self.cfg_ana.etagap, etagap)
+        setattr(event, self.cfg_ana.isosum, isosum)
 
                                      
         
