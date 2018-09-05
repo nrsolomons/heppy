@@ -13,8 +13,14 @@ class PhotonHistory(Analyzer):
         
         * gen_particles: list of all stable gen particles
         '''
-        photons = event.genphotons
-        event.genbrowser = GenBrowser(event.genphotons,
-                                      event.gen_vertices) 
+        genptcs = event.gen_particles
+        genphotons=[]
+        for ptc in genptcs:
+            if abs(ptc.pdgid())==22:
+                genphotons.append(ptc)
+        if len(genphotons) == 0:
+            return
+        event.genbrowser = GenBrowser(event.gen_particles,
+                                      event.gen_vertices)
            
         
