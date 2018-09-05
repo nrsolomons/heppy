@@ -1,4 +1,5 @@
 from heppy.framework.analyzer import Analyzer
+from heppy.particles.genbrowser import GenBrowser
 from heppy.statistics.counter import Counter
 from heppy.utils.deltar import deltaR
 from heppy.particles.isolation import EtaPhiCircle
@@ -22,18 +23,6 @@ class Selection(Analyzer):
     def process(self, event):
 
         self.counters['cut_flow'].inc('All events')
-        #if len(event.sel_iso_leptons) > 0:
-        #    return True # could return False to stop processing
-        #self.counters['cut_flow'].inc('No lepton')
-        #jets = getattr(event, self.cfg_ana.input_jets)        
-        #if len(jets) < 4:
-        #    return True
-        #self.counters['cut_flow'].inc('4 jets')
-        #if min(jet.e() for jet in jets) >= 15.:
-        #    self.counters['cut_flow'].inc('4 jets with E>15')
-        #bjets = [jet for jet in jets if jet.tags['b']]
-        #if len(bjets) >= 2:
-        #    self.counters['cut_flow'].inc('2 b jets')
         
         gammas2 = getattr(event, self.cfg_ana.photons)
         if len(gammas2)<2:
@@ -44,6 +33,7 @@ class Selection(Analyzer):
         if len(gammas1)<2:
             return False
         self.counters['cut_flow'].inc('e>=40GeV')
+
         gammas = [gamma for gamma in gammas1 if abs(gamma.eta())<2.5]
         if len(gammas)<2:
             return False
@@ -72,28 +62,12 @@ class Selection(Analyzer):
                             photon_id_2 = j
             higgscandidates = (gammas[photon_id_1],gammas[photon_id_2])
 
-        isosum = 0
-	
-        particles = getattr(event, self.cfg_ana.particles)
+        isosum = 0	
         isolations = []
         for candidate in higgscandidates:
             isolation = candidate.iso.sume/candidate.e()
-#	    print "relative isolation:", isolation, "absolute:", candidate.iso.sume
             isosum += isolation
             isolations.append(isolation)
-#	    particles_in_cone = []
-	    
-#	    for particle in particles:
-#		if particle is candidate:
-#			continue
-#	        if deltaR(candidate, particle)<0.4:
-#		    particles_in_cone.append(particle)
-#	    sum_e = 0
-#	    for cone_particle in particles_in_cone:
-#		sum_e += cone_particle.e()
-#	    my_isolation = sum_e
-#	    my_rel_isolation = sum_e/candidate.e()
-#	    print "my relative isolation:", my_rel_isolation, "absolute:", my_isolation
 #        if isosum >= 0.4:
 #            return False
 #        self.counters['cut_flow'].inc('sum of photon isolations < 0.4')
@@ -107,7 +81,8 @@ class Selection(Analyzer):
 #        if numpy.degrees(abs(higgs.theta())) >= 65:
 #            return False
 #        self.counters['cut_flow'].inc('Higgs candidate beam angle > 25 degrees')
-	
+
+        genphotons = getattr(event, self.cfg_ana.genphotons)
         status = []
         matchedphotons = []
         mothers = []
@@ -115,12 +90,12 @@ class Selection(Analyzer):
             if particle.match is not None:
                 status.append(particle.match.status())
                 matchedphotons.append(particle.match)
-                mothers.append(particle.match.mothers)
+                for i in range(len(particle.match.mothers)):
+                    mothers.append(particle.match.mothers[i])
             if particle.match is None:
                 print 'No match found'
-	
+        
         mass_square = (2*(higgscandidates[0].e()*higgscandidates[1].e()) - 2*numpy.dot(higgscandidates[0].p3(),higgscandidates[1].p3()))
-
         if mass_square < 0:
             mass = 0
             print 'Negative mass squared'
@@ -134,20 +109,4 @@ class Selection(Analyzer):
         setattr(event, self.cfg_ana.matchedphotons, matchedphotons)
         setattr(event, self.cfg_ana.mothers, mothers)
         setattr(event, self.cfg_ana.etagap, etagap)
-        setattr(event, self.cfg_ana.isosum, isosum)
-
-                                     
-        
-#        if mass<100:
-#            print mass
-#            print higgscandidates[0].e()
-#            print higgscandidates[1].e()
-#            print higgscandidates[0].eta()
-#            print higgscandidates[1].eta()
-#            recoil_mass = math.sqrt((240 - higgscandidates[0].e() - higgscandidates[1].e())**2 - numpy.dot((higgscandidates[0].p3()+higgscandidates[1].p3()),(higgscandidates[0].p3()+higgscandidates[1].p3())))
-#            print recoil_mass
-#            isosum = higgscandidates[0].iso.sume/higgscandidates[0].e() + higgscandidates[0].iso.sume/higgscandidates[1].e()
-#            print isosum
-#            print etagap
-
-            
+        setattr(event, self.cfg_ana.isosum, isosum) 

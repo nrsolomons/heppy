@@ -49,15 +49,38 @@ class Selection1(Analyzer):
         bremphotons = []
         for i in photons:
             for j in isomus:
-                if deltaR(i,j)<1:
+                if deltaR(i,j)<0.5:
                     bremphotons.append(i)
 
        # pos_mus and neg_mus may contain repeats of the muons or antimuons but, ordered, they contain a list of pairs that survive the cuts
-        photon_combos = sum([map(list, combinations(bremphotons, k)) for k in range(len(bremphotons) + 0)], []) 
+        #photon_combos = sum([map(list, combinations(bremphotons, k)) for k in range(len(bremphotons) + 0)], []) 
         min_mass_diff = 9999.9
         recoilmass = 0
         pos_mus = [] 
         neg_mus = []
+        #chosenphotons = []
+
+        #for i in range(len(posmus)):
+        #    mu1 = posmus[i]
+        #    for j in range(len(negmus)):
+        #        mu2 = negmus[j]
+        #        part1 = 240 - mu1.e() - mu2.e()
+        #        part2 = mu1.p3() + mu2.p3()
+        #        for l in range(len(photon_combos)):
+        #            for m in range(len(photon_combos[l])):
+        #                part1 -= photon_combos[l][m].e()
+        #                part2 += photon_combos[l][m].p3()
+        #            recoil_mass_square = part1**2 - numpy.dot(part2, part2)
+        #            if recoil_mass_square<0: 
+        #                recoil_mass = 0
+        #            else:
+        #                recoil_mass = math.sqrt(recoil_mass_square)
+        #            mass_diff = abs(recoil_mass - 91.2)                    
+        #            if mass_diff < min_mass_diff:                     
+        #                min_mass_diff = mass_diff
+        #                recoilmass = recoil_mass
+        #                for n in range(len(photon_combos[l])):
+        #                    chosenphotons.append(photon_combos[l][n])
 
         for i in range(len(posmus)):
             mu1 = posmus[i]
@@ -65,36 +88,26 @@ class Selection1(Analyzer):
                 mu2 = negmus[j]
                 part1 = 240 - mu1.e() - mu2.e()
                 part2 = mu1.p3() + mu2.p3()
-                for l in range(len(photon_combos)):
-                    for m in range(len(photon_combos[l])):
-                        part1 -= photon_combos[l][m].e()
-                        part2 += photon_combos[l][m].p3()
-                    recoil_mass_square = part1**2 - numpy.dot(part2, part2)
-                    if recoil_mass_square<0: 
-                        recoil_mass = 0
-                    else:
-                        recoil_mass = math.sqrt(recoil_mass_square)
-                    mass_diff = abs(recoil_mass - 91.2)                    
-                    if mass_diff < min_mass_diff:                     
-                        min_mass_diff = mass_diff
-                        recoilmass = recoil_mass
-
-                if recoilmass <= 80 or recoilmass >= 110:
-                    return False
+                for l in range(len(bremphotons)):
+                    part1 -= bremphotons[l].e()
+                    part2 += bremphotons[l].p3()
+                recoil_mass_square = part1**2 - numpy.dot(part2, part2)
+                if recoil_mass_square<0: 
+                    recoil_mass = 0
+                    print 'negative recoil mass squared'
                 else:
+                    recoil_mass = math.sqrt(recoil_mass_square)
+                mass_diff = abs(recoil_mass - 91.2)                    
+                if mass_diff < min_mass_diff:                     
+                    min_mass_diff = mass_diff
+                    recoilmass = recoil_mass
+                if 80<recoilmass<110:
                     pos_mus.append(mu1)
                     neg_mus.append(mu2)
 
         if len(pos_mus) < 1:
             return False
         self.counters['cut_flow'].inc('80 < recoil mass < 110')
-
-
-        visible_particle = [ptc for ptc in particles if ptc.pdgid() not in [12,-12,14,-14,16,-16]]        
-        if len(visible_particle)<4:
-            return False
-        self.counters['cut_flow'].inc('Two visible jets')
-
 
         if len(pos_mus) > 1:
             min_mass_diff = 9999.9
@@ -116,7 +129,15 @@ class Selection1(Analyzer):
             higgscandidates = (pos_mus[id1], neg_mus[id2])
         else:
             higgscandidates = (pos_mus[0], neg_mus[0])
-        newparticles = [ptc for ptc in particles if ptc not in higgscandidates]
+
+        visible_particle2 = [ptc for ptc in particles if ptc.pdgid() not in [12,-12,14,-14,16,-16]]
+        visible_particle1 = [ptc for ptc in visible_particle2 if ptc not in bremphotons] 
+        visible_particle = [ptc for ptc in visible_particle1 if ptc not in higgscandidates]        
+        if len(visible_particle)<2:
+            return False
+        self.counters['cut_flow'].inc('Two visible jets')
+
+        newparticles = [ptc for ptc in particles if ptc not in higgscandidates and ptc not in bremphotons]
         #ids1 = []
         #ids2 = []
         #for ptc in particles:

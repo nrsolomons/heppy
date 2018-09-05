@@ -72,10 +72,17 @@ class TreeProducer(Analyzer):
             fillParticle(self.tree,
                        'matchedphoton{i}'.format(i=i+1), 
                        matchedphoton)
-
+        
+        #mothers = getattr(event, self.cfg_ana.mothers)
+        #if len(mothers)>0:
+        #    mother1 = mothers[0]
+        #    if mother1:
+        #        fillParticle(self.tree, 'mother1', mother1)
         mothers = getattr(event, self.cfg_ana.mothers)
-        for i, mother in enumerate(reversed(mothers)):
+        for i, mother in enumerate(mothers):
             if i == 2:
+                break
+            if mother is None:
                 break
             fillParticle(self.tree,
                        'mother{i}'.format(i=i+1), 

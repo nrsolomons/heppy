@@ -22,7 +22,7 @@ class Selection2(Analyzer):
     def process(self, event):
 
         self.counters['cut_flow'].inc('All events')
-        particles = getattr(event, self.cfg_ana.particles)
+        newparticles = getattr(event, self.cfg_ana.newparticles)
         higgscandidates = getattr(event, self.cfg_ana.higgscandidates)
         jets = getattr(event, self.cfg_ana.input_jets)
 #	    for particle in particles:
@@ -34,21 +34,27 @@ class Selection2(Analyzer):
         muon_e = []
         electron_e = []
         photon_e = []
-        for jet in jets:
-            emfrac = (jet.constituents[22].e())/jet.e() 
-            if emfrac < 0.8:
-                notphoton.append(jet)
-            ch_hadron_e = jet.constituents[211].e()/jet.e()
-            mu_e = jet.constituents[13].e()/jet.e()
-            el_e = jet.constituents[11].e()/jet.e()
-            ph_e =jet.constituents[22].e()/jet.e()
+        emfrac = [0,0]
+        for i in range(len(jets)):
+            emfrac[i] = (jets[i].constituents[22].e()+jets[i].constituents[11].e())/jets[i].e() 
+            #if emfrac < 0.8:
+                #notphoton.append(jet)
+            ch_hadron_e = jets[i].constituents[211].e()/jets[i].e()
+            mu_e = jets[i].constituents[13].e()/jets[i].e()
+            el_e = jets[i].constituents[11].e()/jets[i].e()
+            ph_e =jets[i].constituents[22].e()/jets[i].e()
             charged_hadron_e.append(ch_hadron_e)
             muon_e.append(mu_e)
             electron_e.append(el_e)
             photon_e.append(ph_e)
-    	if len(notphoton)<1:
+        ids= []
+        for ptc in newparticles:
+            ids.append(ptc.pdgid())
+        print ids
+        print emfrac
+    	if emfrac[0]>0.8 and emfrac[1]>0.8:
             return False
-        notphoton2 = []    
+        #notphoton2 = []    
        # for jet in jets:
        #     emfrac2 = (jet.constituents[211].e() +jet.constituents[13].e()+jet.constituents[11].e()+jet.constituents[22].e())/jet.e()
        #     if emfrac2 < 0.8:
