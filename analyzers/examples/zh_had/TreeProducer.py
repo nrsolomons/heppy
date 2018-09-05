@@ -12,14 +12,8 @@ class TreeProducer(Analyzer):
                                         'tree.root']),
                               'recreate')
         self.tree = Tree( 'events', '')
-        self.taggers = 'gamma' #is this right?
-        #bookJet(self.tree, 'jet1', self.taggers)
-        #bookJet(self.tree, 'jet2', self.taggers)
-        #bookJet(self.tree, 'jet3', self.taggers)
-        #bookJet(self.tree, 'jet4', self.taggers)
-        #bookParticle(self.tree, 'misenergy')
+        self.taggers = 'gamma' 
         bookParticle(self.tree, 'higgs')
-        #bookParticle(self.tree, 'zed')
         bookParticle(self.tree, 'photon1')
         bookParticle(self.tree, 'photon2')
         bookParticle(self.tree, 'matchedphoton1')
@@ -31,32 +25,14 @@ class TreeProducer(Analyzer):
         var(self.tree, 'isolation1')
         var(self.tree, 'isolation2')
         var(self.tree, 'etagap')
-        var(self.tree, 'isosum')
-	
-#	var(self.tree, 'h_mass')
-        
+        var(self.tree, 'isosum') 
        
     def process(self, event):
         self.tree.reset()
 
-#        hmass=getattr(event, self.cfg_ana.hmass)
-#	fill(self.tree,'h_mass',hmass)
-        
-
-        #misenergy = getattr(event, self.cfg_ana.misenergy)
-        #fillParticle(self.tree, 'misenergy', misenergy )        
-        #jets = getattr(event, self.cfg_ana.jets)
-        #for ijet, jet in enumerate(jets):
-        #    if ijet==4:
-        #        break
-        #    fillJet(self.tree, 'jet{ijet}'.format(ijet=ijet+1),
-        #            jet, self.taggers)
         higgs = getattr(event, self.cfg_ana.higgs)
         if higgs:
             fillParticle(self.tree, 'higgs', higgs)
-        #zed = getattr(event, self.cfg_ana.zed)
-        #if zed:
-        #    fillParticle(self.tree, 'zed', zed)
         photons = getattr(event, self.cfg_ana.photons)
         for i, photon in enumerate(reversed(photons)):
             if i == 2:
@@ -73,11 +49,6 @@ class TreeProducer(Analyzer):
                        'matchedphoton{i}'.format(i=i+1), 
                        matchedphoton)
         
-        #mothers = getattr(event, self.cfg_ana.mothers)
-        #if len(mothers)>0:
-        #    mother1 = mothers[0]
-        #    if mother1:
-        #        fillParticle(self.tree, 'mother1', mother1)
         mothers = getattr(event, self.cfg_ana.mothers)
         for i, mother in enumerate(mothers):
             if i == 2:

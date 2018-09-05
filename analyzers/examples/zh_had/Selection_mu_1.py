@@ -29,7 +29,7 @@ class Selection1(Analyzer):
         mus = getattr(event, self.cfg_ana.muons)
         photons = getattr(event, self.cfg_ana.photons)
         particles = getattr(event, self.cfg_ana.particles)
-	
+        	
         lenmu = len(mus)
         setattr(event, self.cfg_ana.lenmu, lenmu)
 	
@@ -58,6 +58,8 @@ class Selection1(Analyzer):
         recoilmass = 0
         pos_mus = [] 
         neg_mus = []
+
+#below is a method for iterating over all photons, alongside the muons, to choose bremsstrahlung photons such that the system of muons and photons has a recoil mass equal to the Z mass
         #chosenphotons = []
 
         #for i in range(len(posmus)):
@@ -138,13 +140,6 @@ class Selection1(Analyzer):
         self.counters['cut_flow'].inc('Two visible jets')
 
         newparticles = [ptc for ptc in particles if ptc not in higgscandidates and ptc not in bremphotons]
-        #ids1 = []
-        #ids2 = []
-        #for ptc in particles:
-        #    ids1.append(ptc.pdgid())
-        #for ptc in newparticles:
-        #    ids2.append(ptc.pdgid())
-        #print ids1
-        #print ids2
+
         setattr(event, self.cfg_ana.newparticles, newparticles)
         setattr(event, self.cfg_ana.higgscandidates, higgscandidates)
