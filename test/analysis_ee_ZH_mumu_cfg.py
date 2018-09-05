@@ -36,17 +36,17 @@ Collider.SQRTS = 240.
 import glob
 ZH = cfg.Component(
     'ZH',
-    files = glob.glob('/afs/cern.ch/user/n/nsolomon/FCC/WorkDir/ee_ZH_Z_Hmumu_0.root'
+    files = glob.glob('/afs/cern.ch/work/n/nsolomon/FCC/WorkDir/Mumu/ee_ZH_Z_Hmumu_0.root'
     )
 )
 ZH.splitFactor = len(ZH.files)
-#Bkg = cfg.Component(
-#    'Bkg',
-#    files = glob.glob('/afs/cern.ch/work/n/nsolomon/FCC/WorkDir/background_0.root'
-#    )
-#)
-#Bkg.splitFactor = len(Bkg.files)
-selectedComponents = [ZH]
+Bkg = cfg.Component(
+    'Bkg',
+    files = glob.glob('/afs/cern.ch/work/n/nsolomon/FCC/WorkDir/backgroundmumu_*.root'
+    )
+)
+Bkg.splitFactor = len(Bkg.files)
+selectedComponents = [ZH,Bkg]
 
 # read FCC EDM events from the input root file(s)
 # do help(Reader) for more information
@@ -137,8 +137,8 @@ from heppy.analyzers.fcc.JetClusterizer import JetClusterizer
 jets = cfg.Analyzer(
     JetClusterizer,
     output = 'jets',
-    particles = 'rec_particles',
-    fastjet_args = dict(ptmin = 5)  
+    particles = 'newparticles',
+    fastjet_args = dict(njets=2)  
 )
 
 # make 4 gen jets with stable gen particles
@@ -303,26 +303,43 @@ zhreco = cfg.Analyzer(
 )
 
 # simple cut flow printout
-from heppy.analyzers.examples.zh_had.Selection_mu import Selection
-selection = cfg.Analyzer(
-    Selection,
+from heppy.analyzers.examples.zh_had.Selection_mu_1 import Selection1
+selection1 = cfg.Analyzer(
+    Selection1,
 #    hmass="higgs_mass",
     muons='muons',
-    input_jets='jets',
-    higgs = 'higgs',
+#    input_jets='jets',
+    particles='rec_particles',
+    newparticles='newparticles',
+    higgscandidates = 'higgscandidates',
+    lenmu='lenmu',
     photons = 'photons',
     log_level=logging.INFO
 )
 
+from heppy.analyzers.examples.zh_had.Selection_mu_2 import Selection2
+selection2 = cfg.Analyzer(
+    Selection2,
+#    hmass="higgs_mass",
+#    muons='muons',
+    input_jets='jets',
+    particles='newparticles',
+    higgscandidates = 'higgscandidates',
+    higgs='higgs',
+    newparticles='newparticles',
+#    photons = 'photons',
+    log_level=logging.INFO
+)
 # Analysis-specific ntuple producer
 # please have a look at the ZHTreeProducer class
-#from heppy.analyzers.examples.zh_had.TreeProducer_mu import TreeProducer
-#tree = cfg.Analyzer(
-#    TreeProducer,
-#    hmass='higgs_mass'
-#    higgs='higgs',
-#    muons='photons',
-#)
+from heppy.analyzers.examples.zh_had.TreeProducer_mu import TreeProducer
+tree = cfg.Analyzer(
+    TreeProducer,
+    #hmass='higgs_mass'
+    higgs='higgs',
+    muons='muons',
+    lenmu='lenmu'
+)
 
 # definition of the sequence of analyzers,
 # the analyzers will process each event in this order
@@ -333,7 +350,7 @@ sequence = cfg.Sequence(
 #    iso_leptons,
 #    sel_iso_leptons,
 #    lepton_veto, 
-    jets,
+#    jets,
 #    compute_jet_energy, 
     photons,
 #    iso_photons,
@@ -346,9 +363,11 @@ sequence = cfg.Sequence(
 #    jet_to_genjet_match, 
 #    btag,
 #    missing_energy, 
-    selection, 
+    selection1,
+    jets,
+    selection2, 
 #    zhreco, 
-#    tree,
+    tree,
     display
 )
 

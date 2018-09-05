@@ -234,6 +234,13 @@ photon_genphoton_match = cfg.Analyzer(
     delta_r=0.2
 )
 
+from heppy.analyzers.PhotonHistory import PhotonHistory
+gen_photon_history = cfg.Analyzer(
+    PhotonHistory,
+    gen_particles='gen_particles',
+    genphotons='genphotons',
+)
+
 # rescale the jet energy taking according to initial p4
 from heppy.analyzers.examples.zh_had.JetEnergyComputer import JetEnergyComputer
 compute_jet_energy = cfg.Analyzer(
@@ -304,11 +311,15 @@ selection = cfg.Analyzer(
     Selection,
 #    hmass="higgs_mass",
     photons='photons',
-    input_jets='rescaled_jets',
-    particles='rec_particles',
+    genphotons='genphotons',
+    #input_jets='rescaled_jets',
+    #particles='rec_particles',
     higgs = 'higgs',
+    higgscandidates='higgscandidates',
     isolations = 'isolations',
     status='status',
+    matchedphotons='matchedphotons',
+    mothers='mpthers',
     etagap='etagap',
     isosum='isosum',
     log_level=logging.INFO
@@ -322,6 +333,8 @@ tree = cfg.Analyzer(
 #    hmass='higgs_mass'
     higgs='higgs',
     photons='photons',
+    matchedphotons='matchedphotons',
+    mothers='mothers',
     isolations='isolations',
     status='status',
     etagap='etagap',
@@ -345,6 +358,7 @@ sequence = cfg.Sequence(
 #    bquarks,
 #    genjets,
     genphotons,
+    gen_photon_history,
     photon_genphoton_match, 
 #    genjet_to_b_match,
 #    jet_to_genjet_match, 
